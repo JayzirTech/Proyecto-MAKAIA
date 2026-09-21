@@ -1,0 +1,101 @@
+// ==========================================
+// PROYECTO: GESTION DE APUESTAS EN LINEA
+// ==========================================
+
+// 1. GESTIÓN DE USUARIOS Y KYC
+Table dim_users {
+  id_user int [pk, increment]
+  first_name varchar(50) [not null]
+  last_name varchar(50) [not null]
+  email varchar(100) [unique, not null]
+  phone_number varchar(20)
+  date_of_birth date [not null]
+  kyc_status varchar(20) [not null, default: 'Pending', note: 'Pending, Verified, Rejected']
+  account_balance decimal(12,2) [not null, default: 0.00]
+  created_at timestamp [not null]
+}
+
+Table dim_payment_methods {
+  id_payment_method int [pk, increment]
+  id_user int [ref: > dim_users.id_user, not null] // Fixed: Vinculado al usuario correspondiente
+  method_type varchar(50) [not null, note: 'Credit Card, Bank Transfer, E-Wallet']
+  provider_name varchar(50) [not null]
+  account_identifier varchar(100) [not null]
+  is_active boolean [not null, default: true]
+}
+
+// 2. EVENTOS DEPORTIVOS Y EQUIPOS
+Table dim_sports {
+  id_sport int [pk, increment]
+  name varchar(50) [not null, note: 'Futbol, Baloncesto, Tenis, etc.']
+}
+
+Table dim_leagues {
+  id_league int [pk, increment]
+  id_sport int [ref: > dim_sports.id_sport, not null]
+  name varchar(100) [not null]
+  country varchar(50)
+}
+
+Table dim_teams {
+  id_team int [pk, increment]
+  id_sport int [ref: > dim_sports.id_sport, not null]
+  name varchar(100) [not null]
+}
+
+Table dim_sports_events {
+  id_event int [pk, increment]
+  id_league int [ref: > dim_leagues.id_league, not null]
+  id_home_team int [ref: > dim_teams.id_team, not null]
+  id_away_team int [ref: > dim_teams.id_team, not null]
+  event_date timestamp [not null]
+  status varchar(20) [not null, default: 'Scheduled', note: 'Scheduled, Live, Finished, Cancelled']
+  final_result varchar(50) [note: 'Ej. 2-1, 98-102']
+}
+
+// 3. MERCADOS Y SEGUIMIENTO DE CUOTAS (ODDS)
+Table dim_bet_markets {
+  id_market int [pk, increment]
+  id_event int [ref: > dim_sports_events.id_event, not null]
+  market_name varchar(100) [not null, note: 'Ganador Partido, Total Goles Over/Under 2.5']
+  status varchar(20) [not null, default: 'Open', note: 'Open, Suspended, Settled']
+}
+
+Table fact_odds_history {
+  id_odd int [pk, increment]
+  id_market int [ref: > dim_bet_markets.id_market, not null]
+  selection_option varchar(100) [not null, note: 'Ej. Gana Local, Empate, Gana Visitante']
+  odd_value decimal(6,2) [not null, note: 'Cuota ofrecida']
+  changed_at timestamp [not null]
+}
+
+// 4. TRANSACCIONES FINANCIERAS
+Table fact_financial_transactions {
+  id_transaction int [pk, increment]
+  transaction_reference varchar(36) [unique, not null, note: 'UUID / Hash único']
+  id_user int [ref: > dim_users.id_user, not null]
+  id_payment_method int [ref: > dim_payment_methods.id_payment_method]
+  transaction_type varchar(20) [not null, note: 'Deposit, Withdrawal, Adjustment, Payout']
+  amount decimal(12,2) [not null]
+  transaction_datetime timestamp [not null]
+  status varchar(20) [not null, default: 'Completed', note: 'Pending, Completed, Failed']
+}
+
+// 5. APUESTAS (TICKETS Y SEGMENTOS)
+Table fact_bet_tickets {
+  id_ticket int [pk, increment]
+  id_user int [ref: > dim_users.id_user, not null]
+  total_stake decimal(10,2) [not null, note: 'Monto total apostado']
+  potential_payout decimal(12,2) [not null]
+  ticket_status varchar(20) [not null, default: 'Pending', note: 'Pending, Won, Lost, Cancelled']
+  placed_at timestamp [not null]
+}
+
+Table fact_bet_selections {
+  id_selection int [pk, increment]
+  id_ticket int [ref: > fact_bet_tickets.id_ticket, not null]
+  id_odd int [ref: > fact_odds_history.id_odd, not null] // Vincula la cuota del momento y su mercado
+  selected_option varchar(100) [not null]
+  odd_value_at_bet decimal(6,2) [not null, note: 'Congela el valor exacto de la cuotas comprada']
+  status varchar(20) [not null, default: 'Pending', note: 'Pending, Won, Lost, Void']
+}
