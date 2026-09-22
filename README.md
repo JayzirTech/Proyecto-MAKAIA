@@ -75,9 +75,9 @@ El modelo relacional se divide en 5 núcleos funcionales:
 
 ## 👥 7. Integrantes del Equipo
 * **Jayzir Slaider Martínez Chamorro** — *Líder Técnico, Arquitectura de Datos y Modelado SQL*
-* **Valentina Ríos Gómez** — *Ingeniera de Datos y Automatización (Script Python / ETL)*
-* **Carlos Andrés Mendoza** — *Analista de Datos y Modelado en Power BI (KPIs & DAX)*
-* **Daniela Torres Morales** — *Diseñadora de UI/UX Dashboard y Especialista en Storytelling de Negocio*
+* **[Por Asignar...]** — *Ingeniera de Datos y Automatización (Script Python / ETL)*
+* **[Por Asignar...]** — *Analista de Datos y Modelado en Power BI (KPIs & DAX)*
+* **[Por Asignar...]** — *Diseñadora de UI/UX Dashboard y Especialista en Storytelling de Negocio*
 
 ## 📝 8. Licencia y Créditos
 Proyecto desarrollado como parte de las actividades evaluativas del Bootcamp de Análisis de Datos — MAKAIA.
