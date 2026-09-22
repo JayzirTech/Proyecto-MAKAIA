@@ -15,12 +15,11 @@ Table dim_users {
   created_at timestamp [not null]
 }
 
+// CATÁLOGO DE MÉTODOS DE PAGO DISPONIBLES EN LA PLATAFORMA
 Table dim_payment_methods {
   id_payment_method int [pk, increment]
-  id_user int [ref: > dim_users.id_user, not null] // Fixed: Vinculado al usuario correspondiente
-  method_type varchar(50) [not null, note: 'Credit Card, Bank Transfer, E-Wallet']
-  provider_name varchar(50) [not null]
-  account_identifier varchar(100) [not null]
+  name varchar(50) [not null, note: 'Credit Card, Bank Transfer, PSE, Nequi, E-Wallet']
+  provider_name varchar(50) [not null, note: 'PayU, Stripe, MercadoPago, etc.']
   is_active boolean [not null, default: true]
 }
 
@@ -39,10 +38,20 @@ Table dim_leagues {
 
 Table dim_teams {
   id_team int [pk, increment]
-  id_sport int [ref: > dim_sports.id_sport, not null]
   name varchar(100) [not null]
 }
 
+// TABLA PIVOTE / INTERMEDIA (Permite que un equipo esté en varias ligas)
+Table rel_team_leagues {
+  id_team int [ref: > dim_teams.id_team, not null]
+  id_league int [ref: > dim_leagues.id_league, not null]
+
+  Indexes {
+    (id_team, id_league) [pk] // Clave primaria compuesta
+  }
+}
+
+// EVENTO DEPORTIVO (Local vs Visitante dentro de una Liga)
 Table dim_sports_events {
   id_event int [pk, increment]
   id_league int [ref: > dim_leagues.id_league, not null]
@@ -72,7 +81,7 @@ Table fact_odds_history {
 // 4. TRANSACCIONES FINANCIERAS
 Table fact_financial_transactions {
   id_transaction int [pk, increment]
-  transaction_reference varchar(36) [unique, not null, note: 'UUID / Hash único']
+  transaction_reference varchar(36) [unique, not null, note: 'UUID / Hash único de la transacción']
   id_user int [ref: > dim_users.id_user, not null]
   id_payment_method int [ref: > dim_payment_methods.id_payment_method]
   transaction_type varchar(20) [not null, note: 'Deposit, Withdrawal, Adjustment, Payout']
@@ -94,8 +103,8 @@ Table fact_bet_tickets {
 Table fact_bet_selections {
   id_selection int [pk, increment]
   id_ticket int [ref: > fact_bet_tickets.id_ticket, not null]
-  id_odd int [ref: > fact_odds_history.id_odd, not null] // Vincula la cuota del momento y su mercado
+  id_odd int [ref: > fact_odds_history.id_odd, not null]
   selected_option varchar(100) [not null]
-  odd_value_at_bet decimal(6,2) [not null, note: 'Congela el valor exacto de la cuotas comprada']
+  odd_value_at_bet decimal(6,2) [not null, note: 'Congela el valor exacto de la cuota comprada']
   status varchar(20) [not null, default: 'Pending', note: 'Pending, Won, Lost, Void']
 }
